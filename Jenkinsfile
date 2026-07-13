@@ -1,14 +1,19 @@
-pipeline{
-    agent { label 'electronix'}
+pipeline {
+    agent {
+        label 'electronix'
+    }
 
-    stages{
-        stages("I am from Electronix"){
-            steps {echo "Hello from electronix"}
+    stages {
+        stage("I am from Electronix") {
+            steps {
+                echo "Hello from electronix"
+            }
         }
 
-        stages{
-        stages("I am from Electronix"){
-            steps {echo "Electronix Setup is working ✅"}
+        stage("Electronix Setup") {
+            steps {
+                echo "Electronix Setup is working ✅"
+            }
         }
     }
 }
