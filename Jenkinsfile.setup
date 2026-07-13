@@ -22,6 +22,7 @@ pipeline {
         stage("Provision Docker Engine"){
             steps{
                 sh '''
+                if ! command -v docker &> /dev/null;then
                 sudo apt-get install -y ca-certificates curl gnupg
                 sudo install -m 0755 -d /etc/apt/keyrings
                 sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
@@ -34,6 +35,23 @@ pipeline {
 
                 sudo apt-get update -y
                 sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+                fi
+
+                docker --version
+                echo "Docker Installed Done ✅"
+                '''
+            }
+        }
+
+        stage("Provision MySQL client"){
+            steps{
+                sh '''
+                if ! command -v mysql &> /dev/null;then
+                sudo apt-get install -y mysql-client
+                fi
+                mysql --version
+
+                echo "Mysql Done ✅"
                 '''
             }
         }
