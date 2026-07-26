@@ -1,0 +1,64 @@
+pipeline{
+    agent {label 'electronix'}
+
+    environment {
+        ECR_REPO='879246538736.dkr.ecr.us-east-1.amazonaws.com/electronix-ecr'
+        AWS_REGION = "us-east-1"
+        PRODUCTION_IP='98.94.251.102'
+    }
+
+    stages{
+
+            stage('Build Docker Image'){
+                steps{
+                    dir("backend"){
+                        sh 'sudo docker build -t electronix-backend:${BUILD_NUMBER} .'
+                    }
+                }
+            }
+
+            stage("Test ECR Login"){
+                steps {
+                    sh '''
+                    aws ecr get-login-password --region ${AWS_REGION} | sudo docker login --username AWS --password-stdin ${ECR_REPO}
+                    '''
+                }
+            }
+
+            stage ("Tag & Push to ECR"){
+                steps{
+                    sh '''
+                    sudo docker tag electronix-backend:${BUILD_NUMBER} ${ECR_REPO}:${BUILD_NUMBER}
+                    sudo docker tag electronix-backend:${BUILD_NUMBER} ${ECR_REPO}:latest
+                    sudo docker push ${ECR_REPO}:${BUILD_NUMBER}
+                    sudo docker push ${ECR_REPO}:latest
+
+                    echo "Pushed Success ✅"
+                    '''
+                }
+            }
+
+              stage ("Deploy To Production"){
+                steps{
+                    sshagent(['prod-server-ssh-key']){
+                    sh '''
+                    ssh -o StrictHostKeyChecking=no ubuntu@${PRODUCTION_IP} "echo Connection Success"
+                    '''
+                    }
+                    
+                }
+            }
+}
+
+
+  post {
+    success{
+        echo "ECR login success ✅"
+    }
+
+    failure {
+        echo "ECR login Failed ❌"
+    }
+  }
+
+}
